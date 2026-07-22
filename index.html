@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Datartchive</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#ffffff;--surface:#f4f6fb;--border:#e4e8f0;
+  --text:#11131c;--muted:#5c6472;
+  --blue-900:#13205c;--blue:#2f4bd0;--blue-300:#93a8f2;--blue-100:#eaefff;
+  --display:'Space Grotesk',system-ui,sans-serif;--sans:'Inter',system-ui,sans-serif;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.65}
+
+#prog{position:fixed;top:0;left:0;height:2px;background:var(--blue);z-index:100;transition:width .1s}
+
+/* ── NAV ─────────────────────────────────────────────────────────────── */
+nav{position:fixed;top:0;left:0;right:0;z-index:50;background:rgba(255,255,255,.88);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 2rem;height:56px;}
+.brand{font-family:var(--display);font-weight:600;font-size:1.05rem;color:var(--text);text-decoration:none;cursor:pointer}
+.brand span{color:var(--blue)}
+nav ul{list-style:none;display:flex;gap:2rem}
+nav ul a{color:var(--muted);text-decoration:none;font-size:.82rem;font-weight:500;transition:color .2s}
+nav ul a:hover{color:var(--blue)}
+.hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:4px}
+.hamburger span{display:block;width:20px;height:1.5px;background:var(--muted)}
+.mobile-menu{display:none;position:fixed;top:56px;left:0;right:0;background:#fff;border-bottom:1px solid var(--border);padding:1.25rem 2rem;z-index:49;box-shadow:0 12px 24px -12px rgba(17,19,28,.15)}
+.mobile-menu a{display:block;color:var(--muted);text-decoration:none;font-size:.9rem;font-weight:500;padding:.7rem 0;border-bottom:1px solid var(--border)}
+.mobile-menu a:last-child{border-bottom:none}
+.mobile-menu.open{display:block}
+
+.wrap{max-width:860px;margin:0 auto;padding:0 2rem}
+
+/* ── HERO ────────────────────────────────────────────────────────────── */
+#hero{min-height:100vh;display:flex;flex-direction:column;justify-content:flex-end;padding:5rem 2rem;max-width:960px;margin:0 auto;}
+.kicker{font-size:.78rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--blue);margin-bottom:1.5rem;opacity:0;transform:translateY(10px);transition:opacity .8s ease,transform .8s ease;display:flex;align-items:center;gap:.5rem}
+.kicker::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--blue)}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(2.8rem,7vw,5.5rem);line-height:1.02;margin-bottom:1.5rem;color:var(--text);opacity:0;transform:translateY(20px);transition:opacity 1s ease .2s,transform 1s ease .2s;letter-spacing:-.02em}
+h1 span{color:var(--blue)}
+.hero-sub{font-size:1.05rem;color:var(--muted);max-width:500px;font-weight:400;margin-bottom:3rem;line-height:1.75;opacity:0;transform:translateY(16px);transition:opacity .8s ease .5s,transform .8s ease .5s}
+.hero-stats{display:flex;flex-wrap:wrap;gap:0;padding-top:1.75rem;border-top:1px solid var(--border);opacity:0;transform:translateY(12px);transition:opacity .8s ease .8s,transform .8s ease .8s}
+.hstat{padding-right:2.25rem;margin-right:2.25rem;border-right:1px solid var(--border)}
+.hstat:last-child{border-right:none;margin-right:0;padding-right:0}
+.hstat strong{display:block;font-family:var(--display);font-size:1.9rem;font-weight:700;color:var(--text);margin-bottom:.2rem}
+.hstat span{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:500}
+
+.hero-loaded .kicker,.hero-loaded h1,.hero-loaded .hero-sub,.hero-loaded .hero-stats{opacity:1;transform:none}
+
+/* ── SECTIONS ────────────────────────────────────────────────────────── */
+.full{padding:5rem 0;border-top:1px solid var(--border)}
+.sec-label{font-size:.75rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--blue);margin-bottom:.75rem}
+h2{font-family:var(--display);font-size:1.9rem;font-weight:700;color:var(--text);margin-bottom:1.25rem;letter-spacing:-.01em}
+.abstract-body{font-size:.96rem;color:var(--muted);line-height:1.9;max-width:640px}
+.limitation{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--blue-300);padding:1rem 1.25rem;font-size:.83rem;color:var(--muted);line-height:1.8;margin-top:1.25rem;border-radius:0 8px 8px 0}
+.limitation b{color:var(--blue-900);font-weight:600}
+.pills{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:1.75rem}
+.pill{background:var(--surface);border:1px solid var(--border);border-radius:2rem;padding:.35rem 1rem;font-size:.72rem;color:var(--muted)}
+.pill span{color:var(--blue);font-weight:600}
+
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:4rem 0;box-shadow:0 1px 3px rgba(17,19,28,.04)}
+.stat{background:var(--bg);padding:1.5rem;border-right:1px solid var(--border);text-align:center}
+.stat:last-child{border-right:none}
+.stat-n{font-family:var(--display);font-size:1.9rem;font-weight:700;color:var(--blue);display:block}
+.stat-l{font-size:.66rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-top:.3rem;display:block;font-weight:500}
+
+/* ── RQ SECTIONS ─────────────────────────────────────────────────────── */
+.rq-section{padding:5rem 0;border-top:1px solid var(--border)}
+.rq-header{display:flex;align-items:center;gap:1.1rem;margin-bottom:1.25rem}
+.rq-badge{font-family:var(--display);font-size:.85rem;font-weight:700;color:#fff;background:var(--blue);width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.rq-q{font-family:var(--display);font-size:1.3rem;font-weight:600;line-height:1.35;color:var(--text)}
+.rq-method{font-size:.82rem;color:var(--muted);line-height:1.85;margin-bottom:1.25rem;max-width:720px}
+.rq-method code{background:var(--surface);border:1px solid var(--border);padding:.15rem .4rem;border-radius:4px;font-size:.76rem;color:var(--blue-900);font-family:ui-monospace,monospace}
+.finding{background:var(--blue-100);border:1px solid var(--border);border-left:3px solid var(--blue);padding:1rem 1.25rem;font-size:.91rem;color:#2a3245;line-height:1.8;margin-bottom:1.25rem;max-width:720px;border-radius:0 8px 8px 0}
+.finding b{color:var(--blue-900);font-weight:700}
+
+/* ── NARRATIVE CALLOUTS ──────────────────────────────────────────────── */
+.narrative{padding:4rem 0;text-align:center}
+.narrative-line{font-family:var(--display);font-size:clamp(1.4rem,3.5vw,2.1rem);font-weight:600;color:var(--text);line-height:1.35;max-width:700px;margin:0 auto;opacity:0;transform:translateY(24px);transition:opacity .9s ease,transform .9s ease}
+.narrative-line.visible{opacity:1;transform:none}
+.narrative-line em{color:var(--blue);font-style:normal}
+.narrative-sub{font-size:.88rem;color:var(--muted);margin-top:1rem;max-width:500px;margin-left:auto;margin-right:auto;opacity:0;transition:opacity .9s ease .3s}
+.narrative-sub.visible{opacity:1}
+
+/* ── CLIMAX ──────────────────────────────────────────────────────────── */
+.climax{padding:6rem 2rem;text-align:center;background:var(--blue-100);border-radius:16px;margin:3rem 0}
+.climax-number{font-family:var(--display);font-size:clamp(3rem,8vw,6.5rem);font-weight:700;color:var(--blue);display:block;line-height:1;opacity:0;transition:opacity 1s ease}
+.climax-number.visible{opacity:1}
+.climax-label{font-size:.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-top:.75rem;display:block;font-weight:600}
+.climax-text{font-family:var(--display);font-size:1.2rem;color:var(--text);max-width:600px;margin:2rem auto 0;line-height:1.55;font-weight:500;opacity:0;transition:opacity .9s ease .4s}
+.climax-text em{color:var(--blue);font-style:normal}
+.climax-text.visible{opacity:1}
+
+/* ── CHARTS ──────────────────────────────────────────────────────────── */
+.chart-card{position:relative;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1.25rem;overflow:hidden;box-shadow:0 1px 3px rgba(17,19,28,.05),0 8px 24px -16px rgba(17,19,28,.15)}
+.chart-title{font-size:.72rem;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-bottom:0;font-weight:600}
+.chart-toolbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.6rem;margin-bottom:1.25rem}
+.chart-toggle{display:flex;gap:.3rem;flex-wrap:wrap}
+.toggle-btn{font-size:.68rem;font-weight:600;font-family:var(--sans);padding:.32rem .65rem;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--muted);cursor:pointer;transition:all .15s}
+.toggle-btn.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+.toggle-btn:hover:not(.active){border-color:var(--blue-300);color:var(--blue)}
+.chart-title.standalone{margin-bottom:1.25rem}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem}
+svg{display:block;max-width:100%}
+svg text{font-family:var(--sans)}
+.tip{position:fixed;background:var(--text);color:#fff;border-radius:6px;padding:.4rem .75rem;font-size:.75rem;pointer-events:none;opacity:0;transition:opacity .12s;z-index:200;white-space:nowrap;box-shadow:0 8px 20px -8px rgba(0,0,0,.3)}
+
+/* ── FADE IN ON SCROLL ───────────────────────────────────────────────── */
+.fade-in{opacity:0;transform:translateY(20px);transition:opacity .7s ease,transform .7s ease}
+.fade-in.visible{opacity:1;transform:none}
+
+/* ── CONCLUSIONS ─────────────────────────────────────────────────────── */
+#conclusions{padding:5rem 0;border-top:1px solid var(--border)}
+.conc{display:grid;grid-template-columns:36px 1fr;gap:1.5rem;margin-bottom:2.5rem;align-items:start}
+.conc-n{font-family:var(--display);font-size:.8rem;font-weight:700;color:#fff;background:var(--blue-300);width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center}
+.conc-t{font-size:.93rem;color:var(--muted);line-height:1.9}
+.conc-t b{color:var(--text);font-weight:600}
+
+/* ── CREDITS ─────────────────────────────────────────────────────────── */
+#credits{padding:5rem 0;border-top:1px solid var(--border)}
+.cred-grid{display:grid;grid-template-columns:1fr 1fr;gap:3rem;margin-top:1.5rem}
+.cred h4{font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--blue);margin-bottom:.75rem;font-weight:600}
+.cred p,.cred a{font-size:.86rem;color:var(--muted);line-height:1.85;text-decoration:none}
+.cred a:hover{color:var(--blue)}
+
+footer{border-top:1px solid var(--border);padding:1.5rem 2rem;text-align:center;font-size:.78rem;color:var(--muted)}
+
+@media(max-width:900px){
+  nav ul{display:none}
+  .hamburger{display:flex}
+  .two-col{grid-template-columns:1fr !important}
+  .stats-row{grid-template-columns:1fr 1fr}
+  .stat{border-right:none;border-bottom:1px solid var(--border)}
+  .cred-grid{grid-template-columns:1fr}
+  h1{font-size:2.2rem}
+  .rq-q{font-size:1.1rem}
+  .chart-card{padding:1.25rem}
+  .wrap{padding:0 1rem}
+  #hero{padding:4rem 1rem 3rem}
+  nav{padding:0 1rem}
+  .full,.rq-section{padding:3rem 0}
+  .narrative{padding:2.5rem 1rem}
+  .climax{padding:3rem 1rem}
+  .hstat{padding-right:1.25rem;margin-right:1.25rem}
+}
+@media(max-width:500px){
+  .stats-row{grid-template-columns:1fr}
+  .hstat{border-right:none;padding-right:0;margin-right:0;width:50%}
+  h1{font-size:1.9rem}
+  .hstat strong{font-size:1.5rem}
+  .narrative-line{font-size:1.15rem}
+  .climax-number{font-size:2.8rem}
+  .climax-text{font-size:1rem}
+}
+</style>
+</head>
+<body>
+<div id="prog"></div>
+<div class="tip" id="tip"></div>
+
+<nav>
+  <a href="#" class="brand">Datartchive</a>
+  <ul>
+    <li><a href="#abstract">About</a></li>
+    <li><a href="#rq1">Institutions</a></li>
+    <li><a href="#rq2">Nationality</a></li>
+    <li><a href="#rq3">Gender</a></li>
+    <li><a href="#rq4">Places</a></li>
+    <li><a href="#conclusions">Conclusions</a></li>
+  </ul>
+  <div class="hamburger" id="hamburger" onclick="toggleMenu()">
+    <span></span><span></span><span></span>
+  </div>
+</nav>
+<div class="mobile-menu" id="mobile-menu">
+  <a href="#abstract" onclick="closeMenu()">About</a>
+  <a href="#rq1" onclick="closeMenu()">Institutions</a>
+  <a href="#rq2" onclick="closeMenu()">Nationality</a>
+  <a href="#rq3" onclick="closeMenu()">Gender</a>
+  <a href="#rq4" onclick="closeMenu()">Places</a>
+  <a href="#conclusions" onclick="closeMenu()">Conclusions</a>
+</div>
+
+<div class="wrap">
+
+<section id="hero">
+  <h1><span>Datartchive</span></h1>
+  <p class="hero-sub">A data-driven portrait of artists documented across five PHAROS art-historical archives — queried live from Linked Open Data, enriched from Getty ULAN.</p>
+  <div class="hero-stats">
+    <div class="hstat"><strong data-count="34346">0</strong><span>Verified persons</span></div>
+    <div class="hstat"><strong data-count="77956">0</strong><span>Total records</span></div>
+    <div class="hstat"><strong data-count="5">0</strong><span>Institutions</span></div>
+    <div class="hstat"><strong data-count="7311">0</strong><span>Cross-institution links</span></div>
+  </div>
+</section>
+
+<!-- NARRATIVE 1 -->
+<div class="narrative">
+  <p class="narrative-line">"Five archives. <em>Whose artists</em> make it in?"</p>
+  <p class="narrative-sub">We queried 77,956 records from five institutions. But not all records are equal — and not all institutions expose their data the same way.</p>
+</div>
+
+<section class="full" id="abstract">
+  <p class="sec-label">About this project</p>
+  <h2>What we set out to find</h2>
+  <p class="abstract-body">This project investigates the persons documented across five active PHAROS member institutions through four research questions: the distribution across institutions, nationality, gender representation over time, and geographic mobility. Data was queried from artresearch.net via SPARQL using CIDOC-CRM predicates and enriched with biographical records from Getty ULAN.</p>
+  <div class="limitation">
+    <b>Methodological note:</b> At the time of data collection, person records were retrievable from five institutions via the artresearch.net SPARQL endpoint. The remaining eight PHAROS members (Courtauld, RKD, NGA, Yale, Hertziana, KHI, Dumbarton Oaks, I Tatti) returned no results — this may reflect differences in data modelling, endpoint availability, or ongoing data integration. Additionally, Wikidata enrichment was planned but unavailable due to an active WDQS outage at time of submission.
+  </div>
+  <div class="pills" style="margin-top:1.5rem">
+    <div class="pill"><span>LOD 1</span> &nbsp;artresearch.net — PHAROS · CC BY 4.0</div>
+    <div class="pill"><span>LOD 2</span> &nbsp;Getty ULAN · Open Data Commons Attribution</div>
+  </div>
+</section>
+
+<div class="stats-row">
+  <div class="stat"><span class="stat-n">34,346</span><span class="stat-l">Verified persons</span></div>
+  <div class="stat"><span class="stat-n">24,950</span><span class="stat-l">Getty ULAN linked</span></div>
+  <div class="stat"><span class="stat-n">77,956</span><span class="stat-l">Total records</span></div>
+  <div class="stat"><span class="stat-n">43,610</span><span class="stat-l">Unverified records</span></div>
+</div>
+
+<!-- RQ1 -->
+<div class="rq-section" id="rq1">
+  <div class="rq-header"><div class="rq-badge">01</div><p class="rq-q">How are persons distributed across five PHAROS member institutions?</p></div>
+  <p class="rq-method">Persons retrieved via CIDOC-CRM SPARQL — four different modelling patterns across institutions. Only verified persons with external identifiers included.</p>
+  <div class="finding"><b>Finding:</b> Bildarchiv Foto Marburg dominates in raw numbers. The highest overlap ratio has shown in the Warburg Institute because 75% of its verified persons are shared with other institutions. The Paul Mellon Centre, Frick Art Research Library, and MIDAS have more verified unique persons than shared.</div>
+  <div class="limitation"><b>Limitation:</b> These numbers only reflect persons retrievable via SPARQL from each institution, not their actual collection size. These figures are not directly comparable across institutions due to differences in data modelling, URI patterns, and external identifier coverage.</div>
+  <div class="chart-card fade-in" style="margin-top:1.5rem">
+    <div class="chart-toolbar">
+      <p class="chart-title">Verified persons per institution — unique + shared</p>
+      <div class="chart-toggle">
+        <button class="toggle-btn active" id="rq1-sort-total" onclick="setRQ1Sort('total')">By total (count)</button>
+        <button class="toggle-btn" id="rq1-sort-overlap" onclick="setRQ1Sort('overlap')">By overlap (%)</button>
+      </div>
+    </div>
+    <svg id="c-rq1"></svg>
+  </div>
+</div>
+
+<!-- NARRATIVE 2 -->
+<div class="narrative">
+  <p class="narrative-line">Among those we could verify: <em>Italian artists lead.</em></p>
+  <p class="narrative-sub">But does the data reflect art history — or the collecting priorities of five specific institutions?</p>
+</div>
+
+<!-- RQ2 -->
+<div class="rq-section" id="rq2">
+  <div class="rq-header"><div class="rq-badge">02</div><p class="rq-q">Which nationalities are represented — and which dominate?</p></div>
+  <p class="rq-method">Nationality from Getty ULAN <code>gvp:nationalityPreferred</code>. Only the 24,950 persons linked to Getty ULAN are included — 32% of total records.</p>
+  <div class="finding"><b>Finding:</b> Italian artists lead with 5,653 persons, followed by German and British. This distribution might reflect the institutional composition of PHAROS — particularly Fondazione Zeri and Frick's Italian holdings — rather than a neutral cross-section of art history.</div>
+  <div class="chart-card fade-in" style="margin-top:1.5rem">
+    <p class="chart-title standalone">Nationality distribution — treemap (Getty ULAN linked persons only)</p>
+    <svg id="c-rq2"></svg>
+  </div>
+</div>
+
+<!-- NARRATIVE 3 -->
+<div class="narrative">
+  <p class="narrative-line"><em>93%</em> male. Across every century.</p>
+  <p class="narrative-sub">Is this a reflection of history — or a reflection of who gets documented?</p>
+</div>
+
+<!-- RQ3 -->
+<div class="rq-section" id="rq3">
+  <div class="rq-header"><div class="rq-badge">03</div><p class="rq-q">How is gender represented — and has it changed across centuries?</p></div>
+  <p class="rq-method">Gender from Getty ULAN biographical records (AAT 300189559 = male, 300189557 = female). Active period start year used as decade proxy.</p>
+  <div class="finding"><b>Finding:</b> 93% of verified persons are male artists. Female representation rises from the 1840s, reaching a peak share near 11% in the 1890s before declining. This may reflect both historical barriers and systematic gaps in archival documentation.</div>
+  <div class="two-col" style="margin-top:1.5rem">
+    <div class="chart-card fade-in">
+      <p class="chart-title standalone">Overall gender distribution</p>
+      <svg id="c-rq3-pie"></svg>
+    </div>
+    <div class="chart-card fade-in">
+      <p class="chart-title standalone">Female share over time (%)</p>
+      <svg id="c-rq3-line"></svg>
+    </div>
+  </div>
+</div>
+
+<!-- CLIMAX -->
+<div class="climax">
+  <span class="climax-number" id="climax-n">1,065</span>
+  <span class="climax-label">artists died in London</span>
+  <p class="climax-text">Only 712 were born there. More artists ended their lives in London than began them — the archive reveals not just who made art, but <em>where art pulled people.</em></p>
+</div>
+
+<!-- RQ4 -->
+<div class="rq-section" id="rq4">
+  <div class="rq-header"><div class="rq-badge">04</div><p class="rq-q">Where were persons born and where did they die?</p></div>
+  <p class="rq-method">Birth and death places from Getty ULAN TGN-linked records via <code>schema:birthPlace</code> and <code>schema:deathPlace</code>.</p>
+  <div class="finding"><b>Finding:</b> There are more deaths than births in London and Paris. Thus, we can say that these are the two most attractive cities for artistic careers. Siena and Edinburgh are two exceptional cities with roughly equal birth and death counts.</div>
+  <div class="limitation"><b>Coverage note:</b> Birth place data is available for 5,549 persons and death place for 5,375 — but only 3,355 have <em>both</em> places recorded, which is 10% of verified persons. An additional 2,194 have only birth place, and 2,020 only death place. Of those with both, 51.1% moved (died in a different city), 48.9% stayed. The London/Paris asymmetry is not explained by this gap, confirming a real signal rather than coverage bias.</div>
+  <div class="chart-card fade-in" style="margin-top:1.5rem">
+    <div class="chart-toolbar">
+      <p class="chart-title">Birth city vs death city — grouped bar (dark blue = born, light blue = died)</p>
+      <div class="chart-toggle">
+        <button class="toggle-btn active" id="rq4-sort-volume" onclick="setRQ4Sort('volume')">By volume</button>
+        <button class="toggle-btn" id="rq4-sort-gap" onclick="setRQ4Sort('gap')">By mobility gap</button>
+      </div>
+    </div>
+    <svg id="c-rq4"></svg>
+  </div>
+</div>
+
+<!-- CONCLUSIONS -->
+<section class="full" id="conclusions">
+  <p class="sec-label">Conclusions</p>
+  <h2>What the data tells us</h2>
+  <div style="margin-top:2rem">
+    <div class="conc fade-in">
+      <span class="conc-n">01</span>
+      <p class="conc-t"><b>Institution distribution.</b>
+        Foto Marburg and Frick dominate the verified persons. The high overlap ratio of the Warburg Institute reflects active cross-institutional dialogue. Counts are not directly comparable across institutions due to differences in data modelling and SPARQL coverage.
+      </p>
+    </div>
+    <div class="conc fade-in">
+      <span class="conc-n">02</span>
+      <p class="conc-t"><b>Nationality.</b>
+        Italian artists lead the nationalities of the artists. Western Europe dominates the nationalities in the data for the five current PHAROS members.
+      </p>
+    </div>
+    <div class="conc fade-in">
+      <span class="conc-n">03</span>
+      <p class="conc-t"><b>Gender.</b>
+        Female artists account for only 3.4% of verified persons. Their representation rises modestly from the 1840s. This pattern reflects both historical exclusion and archival documentation bias — Getty ULAN may systematically under-represent women.
+      </p>
+    </div>
+    <div class="conc fade-in">
+      <span class="conc-n">04</span>
+      <p class="conc-t"><b>Geographic mobility.</b>
+        London and Paris attracted more artists than their native artists. 51.1% of the 3,355 persons with both birth and death places recorded died in a different city, so there is a significant geographic mobility. The London/Paris dominance in death counts is not explained by coverage gaps. These cities might have functioned as crucial centres for artistic careers.
+      </p>
+    </div>
+    <div class="conc fade-in">
+      <span class="conc-n">→</span>
+      <p class="conc-t"><b>What remains open.</b>
+        Eight PHAROS members returned no queryable data — they may model their data differently, or may not yet expose it through the shared endpoint. As more institutions publish their records, every finding here may shift.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- CREDITS -->
+<section class="full" id="credits">
+  <p class="sec-label">Credits & Licenses</p>
+  <div class="cred-grid">
+    <div class="cred">
+      <h4>Data sources</h4>
+      <p><a href="https://artresearch.net">artresearch.net</a> — PHAROS LOD · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></p>
+      <p><a href="https://vocab.getty.edu">Getty ULAN</a> · <a href="http://opendatacommons.org/licenses/by/1.0/">Open Data Commons Attribution</a></p>
+    </div>
+    <div class="cred">
+      <h4>Project</h4>
+      <div style="display:flex;flex-direction:column;align-items:flex-start;gap:.75rem;margin-bottom:.75rem">
+        <img src="yigit-photo.jpg" alt="Yiğit" style="width:90px;height:90px;border-radius:10px;border:1px solid var(--border);object-fit:cover;background:var(--surface)">
+        <div>
+          <p style="font-weight:600;color:var(--text)">Yiğit Ak</p>
+          <p style="font-size:.8rem">Information Visualization course (a.a. 2025/2026)<br>Digital Humanities and Digital Knowledge · Master's Degree<br>Alma Mater Studiorum – University of Bologna</p>
+        </div>
+      </div>
+      <p><a href="https://github.com/yigittakk">github.com/yigittakk</a></p>
+      <p style="margin-top:.75rem">Visualizations: <a href="https://d3js.org">D3.js v7</a></p>
+    </div>
+  </div>
+</section>
+
+</div>
+<footer>Datartchive — Information Visualization (a.a. 2025/2026) <br> 
+  Digital Humanities and Digital Knowledge · Master's Degree<br>Alma Mater Studiorum – University of Bologna</footer>
+
+<script>
+// ── MOBILE MENU ────────────────────────────────────────────────────────────
+function toggleMenu(){
+  const m=document.getElementById('mobile-menu');
+  const h=document.getElementById('hamburger');
+  m.classList.toggle('open');
+  h.classList.toggle('open');
+}
+function closeMenu(){
+  document.getElementById('mobile-menu').classList.remove('open');
+  document.getElementById('hamburger').classList.remove('open');
+}
+
+// ── SCROLL PROGRESS ────────────────────────────────────────────────────────
+window.addEventListener('scroll',()=>{
+  document.getElementById('prog').style.width=(window.scrollY/(document.body.scrollHeight-window.innerHeight)*100)+'%';
+});
+
+// ── HERO LOAD ANIMATION ────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded',()=>{
+  requestAnimationFrame(()=>{
+    setTimeout(()=>document.getElementById('hero').classList.add('hero-loaded'),50);
+  });
+});
+
+// ── COUNTER ANIMATION ──────────────────────────────────────────────────────
+function animateCounter(el, target, duration=1800){
+  const start = performance.now();
+  function update(time){
+    const progress = Math.min((time-start)/duration,1);
+    const ease = 1-Math.pow(1-progress,3);
+    el.textContent = Math.floor(ease*target).toLocaleString();
+    if(progress<1) requestAnimationFrame(update);
+    else el.textContent = target.toLocaleString();
+  }
+  requestAnimationFrame(update);
+}
+
+// ── INTERSECTION OBSERVER ──────────────────────────────────────────────────
+const observer = new IntersectionObserver((entries)=>{
+  entries.forEach(entry=>{
+    if(entry.isIntersecting){
+      entry.target.classList.add('visible');
+      observer.unobserve(entry.target);
+    }
+  });
+},{threshold:0.15});
+
+document.querySelectorAll('.narrative-line,.narrative-sub,.fade-in,.climax-number,.climax-text,.conc').forEach(el=>observer.observe(el));
+
+const heroStats = document.querySelector('.hero-stats');
+const heroObserver = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      document.querySelectorAll('[data-count]').forEach(el=>animateCounter(el,parseInt(el.dataset.count)));
+      heroObserver.unobserve(e.target);
+    }
+  });
+},{threshold:0.3});
+if(heroStats) heroObserver.observe(heroStats);
+
+const climaxN = document.getElementById('climax-n');
+const climaxObs = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      e.target.classList.add('visible');
+      document.querySelector('.climax-text')?.classList.add('visible');
+      climaxObs.unobserve(e.target);
+    }
+  });
+},{threshold:0.3});
+if(climaxN) climaxObs.observe(climaxN);
+
+// ── TOOLTIP ────────────────────────────────────────────────────────────────
+const tip=document.getElementById('tip');
+function showTip(html,e){tip.innerHTML=html;tip.style.opacity=1;tip.style.left=(e.clientX+12)+'px';tip.style.top=(e.clientY-36)+'px'}
+function hideTip(){tip.style.opacity=0}
+
+function getW(id){return document.getElementById(id).parentElement.clientWidth-32}
+
+// ── DATA ──────────────────────────────────────────────────────────────────
+const rq1Data=[
+  {label:'Bildarchiv Foto Marburg (MIDAS)',short:'MIDAS',   single:16265,overlap:5748,total:22013},
+  {label:'Frick Art Research Library',     short:'Frick',   single:5522, overlap:4717,total:10239},
+  {label:'Paul Mellon Centre',             short:'PMC',     single:3286, overlap:1747,total:5033},
+  {label:'Warburg Institute',              short:'Warburg', single:1023, overlap:3085,total:4108},
+  {label:'Fondazione Zeri',                short:'Zeri',    single:939,  overlap:2738,total:3677},
+];
+const natData=[{nationality:"Italian (culture or style)",count:5653},{nationality:"German (culture, style, period)",count:4481},{nationality:"British (modern)",count:4321},{nationality:"French (culture or style)",count:2714},{nationality:"American (North American)",count:1868},{nationality:"Dutch (culture or style)",count:1214},{nationality:"Flemish (culture or style)",count:622},{nationality:"Spanish (culture or style)",count:610},{nationality:"Austrian",count:605},{nationality:"Swiss",count:518},{nationality:"Belgian (modern)",count:232},{nationality:"Netherlandish",count:196},{nationality:"Russian (culture or style)",count:156},{nationality:"Danish (culture or style)",count:143},{nationality:"Irish",count:137},{nationality:"Greek (modern)",count:123},{nationality:"Polish (culture)",count:110},{nationality:"Czech (culture or style)",count:108},{nationality:"Swedish (culture or style)",count:99},{nationality:"Hungarian",count:74}];
+const genTotal=[{gender:"male",count:23064},{gender:"unidentified",count:889},{gender:"female",count:834}];
+const genDecade=[{decade:1300,gender:"male",count:32},{decade:1310,gender:"male",count:37},{decade:1320,gender:"male",count:40},{decade:1330,gender:"male",count:30},{decade:1340,gender:"male",count:34},{decade:1350,gender:"male",count:39},{decade:1360,gender:"male",count:50},{decade:1370,gender:"male",count:67},{decade:1380,gender:"male",count:46},{decade:1390,gender:"male",count:59},{decade:1400,gender:"male",count:88},{decade:1410,gender:"female",count:1},{decade:1410,gender:"male",count:106},{decade:1420,gender:"male",count:115},{decade:1430,gender:"male",count:124},{decade:1440,gender:"male",count:149},{decade:1450,gender:"male",count:197},{decade:1460,gender:"male",count:204},{decade:1470,gender:"female",count:1},{decade:1470,gender:"male",count:268},{decade:1480,gender:"male",count:201},{decade:1490,gender:"female",count:1},{decade:1490,gender:"male",count:184},{decade:1500,gender:"male",count:243},{decade:1510,gender:"male",count:174},{decade:1520,gender:"female",count:4},{decade:1520,gender:"male",count:213},{decade:1530,gender:"female",count:2},{decade:1530,gender:"male",count:199},{decade:1540,gender:"female",count:2},{decade:1540,gender:"male",count:202},{decade:1550,gender:"female",count:4},{decade:1550,gender:"male",count:224},{decade:1560,gender:"female",count:2},{decade:1560,gender:"male",count:240},{decade:1570,gender:"female",count:3},{decade:1570,gender:"male",count:307},{decade:1580,gender:"female",count:1},{decade:1580,gender:"male",count:272},{decade:1590,gender:"female",count:5},{decade:1590,gender:"male",count:300},{decade:1600,gender:"female",count:7},{decade:1600,gender:"male",count:375},{decade:1610,gender:"female",count:2},{decade:1610,gender:"male",count:364},{decade:1620,gender:"female",count:4},{decade:1620,gender:"male",count:411},{decade:1630,gender:"female",count:6},{decade:1630,gender:"male",count:359},{decade:1640,gender:"female",count:8},{decade:1640,gender:"male",count:339},{decade:1650,gender:"female",count:6},{decade:1650,gender:"male",count:335},{decade:1660,gender:"female",count:5},{decade:1660,gender:"male",count:321},{decade:1670,gender:"female",count:8},{decade:1670,gender:"male",count:368},{decade:1680,gender:"female",count:5},{decade:1680,gender:"male",count:318},{decade:1690,gender:"female",count:4},{decade:1690,gender:"male",count:360},{decade:1700,gender:"female",count:10},{decade:1700,gender:"male",count:407},{decade:1710,gender:"female",count:4},{decade:1710,gender:"male",count:399},{decade:1720,gender:"female",count:11},{decade:1720,gender:"male",count:426},{decade:1730,gender:"female",count:10},{decade:1730,gender:"male",count:506},{decade:1740,gender:"female",count:18},{decade:1740,gender:"male",count:543},{decade:1750,gender:"female",count:14},{decade:1750,gender:"male",count:550},{decade:1760,gender:"female",count:20},{decade:1760,gender:"male",count:476},{decade:1770,gender:"female",count:30},{decade:1770,gender:"male",count:497},{decade:1780,gender:"female",count:16},{decade:1780,gender:"male",count:566},{decade:1790,gender:"female",count:30},{decade:1790,gender:"male",count:619},{decade:1800,gender:"female",count:21},{decade:1800,gender:"male",count:923},{decade:1810,gender:"female",count:19},{decade:1810,gender:"male",count:959},{decade:1820,gender:"female",count:20},{decade:1820,gender:"male",count:913},{decade:1830,gender:"female",count:35},{decade:1830,gender:"male",count:782},{decade:1840,gender:"female",count:56},{decade:1840,gender:"male",count:924},{decade:1850,gender:"female",count:61},{decade:1850,gender:"male",count:919},{decade:1860,gender:"female",count:59},{decade:1860,gender:"male",count:908},{decade:1870,gender:"female",count:77},{decade:1870,gender:"male",count:773},{decade:1880,gender:"female",count:46},{decade:1880,gender:"male",count:791},{decade:1890,gender:"female",count:78},{decade:1890,gender:"male",count:620},{decade:1900,gender:"female",count:50},{decade:1900,gender:"male",count:519},{decade:1910,gender:"female",count:22},{decade:1910,gender:"male",count:252},{decade:1920,gender:"female",count:10},{decade:1920,gender:"male",count:185},{decade:1930,gender:"female",count:11},{decade:1930,gender:"male",count:156},{decade:1940,gender:"female",count:17},{decade:1940,gender:"male",count:100},{decade:1950,gender:"female",count:6},{decade:1950,gender:"male",count:51}];
+const birthData=[{place:"London",count:712},{place:"Paris",count:683},{place:"Amsterdam",count:160},{place:"Bologna",count:154},{place:"Berlin",count:146},{place:"New York",count:115},{place:"Edinburgh",count:106},{place:"Philadelphia",count:81},{place:"Dublin",count:67},{place:"Frankfurt am Main",count:66},{place:"Haarlem",count:66},{place:"Verona",count:60},{place:"Siena",count:53},{place:"Liverpool",count:46},{place:"Birmingham",count:45}];
+const deathData=[{place:"London",count:1065},{place:"Paris",count:1024},{place:"New York",count:272},{place:"Berlin",count:237},{place:"Amsterdam",count:195},{place:"Bologna",count:118},{place:"Edinburgh",count:97},{place:"Frankfurt am Main",count:72},{place:"Haarlem",count:52},{place:"Dublin",count:50},{place:"Philadelphia",count:51},{place:"Stockholm",count:46},{place:"Siena",count:46},{place:"Utrecht",count:36},{place:"Hampstead",count:36}];
+
+let rq1Mode='count', rq1Sort='total';
+function setRQ1Sort(sort){
+  rq1Sort=sort;
+  rq1Mode=(sort==='overlap')?'percent':'count';
+  document.getElementById('rq1-sort-total').classList.toggle('active',sort==='total');
+  document.getElementById('rq1-sort-overlap').classList.toggle('active',sort==='overlap');
+  document.getElementById('c-rq1').innerHTML='';
+  drawRQ1();
+}
+
+let rq4Sort='volume';
+function setRQ4Sort(sort){
+  rq4Sort=sort;
+  document.getElementById('rq4-sort-volume').classList.toggle('active',sort==='volume');
+  document.getElementById('rq4-sort-gap').classList.toggle('active',sort==='gap');
+  document.getElementById('c-rq4').innerHTML='';
+  drawRQ4();
+}
+
+// ── RQ1 STACKED BAR ───────────────────────────────────────────────────────
+function drawRQ1(){
+  let data=[...rq1Data];
+  if(rq1Sort==='total'){
+    data.sort((a,b)=>a.total-b.total);
+  }else{
+    data.sort((a,b)=>(b.overlap/b.total)-(a.overlap/a.total));
+  }
+  const percent=rq1Mode==='percent';
+  const W=getW('c-rq1');
+  const mobile=W<480;
+  const m={t:6,r:mobile?40:70,b:28,l:mobile?65:210};
+  const H=data.length*32+m.t+m.b+24;
+  const w=W-m.l-m.r,h=data.length*32;
+  const svg=d3.select('#c-rq1').attr('width',W).attr('height',H);
+  const g=svg.append('g').attr('transform',`translate(${m.l},${m.t})`);
+  const maxTotal=percent?100:(d3.max(data,d=>d.total)||1);
+  const x=d3.scaleLinear().domain([0,maxTotal]).range([0,w]);
+  const yDomain=data.map(d=>mobile?d.short:d.label);
+  const y=d3.scaleBand().domain(yDomain).range([0,h]).padding(.3);
+  const yFull=d3.scaleBand().domain(data.map(d=>d.label)).range([0,h]).padding(.3);
+  g.selectAll('.gl').data(x.ticks(mobile?3:4)).join('line').attr('x1',d=>x(d)).attr('x2',d=>x(d)).attr('y1',0).attr('y2',h).attr('stroke','#e4e8f0').attr('stroke-width',1);
+  const singleVal=d=>percent?(d.single/d.total*100):d.single;
+  const overlapVal=d=>percent?(d.overlap/d.total*100):d.overlap;
+  g.selectAll('.bs').data(data).join('rect').attr('y',d=>yFull(d.label)).attr('height',yFull.bandwidth()).attr('x',0).attr('width',0).attr('fill','#2f4bd0').attr('rx',2)
+    .on('mouseover',(e,d)=>showTip(`<b>${d.label}</b><br>Unique: ${percent?singleVal(d).toFixed(1)+'%':d.single.toLocaleString()}`,e))
+    .on('mousemove',(e,d)=>showTip(`<b>${d.label}</b><br>Unique: ${percent?singleVal(d).toFixed(1)+'%':d.single.toLocaleString()}`,e))
+    .on('mouseleave',hideTip)
+    .transition().duration(500).delay((_,i)=>i*25).attr('width',d=>x(singleVal(d)));
+  g.selectAll('.bo').data(data).join('rect').attr('y',d=>yFull(d.label)).attr('height',yFull.bandwidth()).attr('x',d=>x(singleVal(d))).attr('width',0).attr('fill','#93a8f2').attr('rx',2)
+    .on('mouseover',(e,d)=>showTip(`<b>${d.label}</b><br>Shared: ${percent?overlapVal(d).toFixed(1)+'%':d.overlap.toLocaleString()}`,e))
+    .on('mousemove',(e,d)=>showTip(`<b>${d.label}</b><br>Shared: ${percent?overlapVal(d).toFixed(1)+'%':d.overlap.toLocaleString()}`,e))
+    .on('mouseleave',hideTip)
+    .transition().duration(500).delay((_,i)=>i*25).attr('width',d=>x(overlapVal(d)));
+  if(!mobile && !percent){
+    g.selectAll('.lt').data(data).join('text').attr('x',d=>x(d.total)+4).attr('y',d=>yFull(d.label)+yFull.bandwidth()/2+4).attr('fill','#5c6472').attr('font-size',11).text(d=>d.total.toLocaleString()).style('opacity',0).transition().duration(600).delay((_,i)=>i*25+400).style('opacity',1);
+  }
+  if(!mobile && percent){
+    g.selectAll('.lt').data(data).join('text').attr('x',w+4).attr('y',d=>yFull(d.label)+yFull.bandwidth()/2+4).attr('fill','#5c6472').attr('font-size',11).text(d=>(d.overlap/d.total*100).toFixed(0)+'%').style('opacity',0).transition().duration(600).delay((_,i)=>i*25+400).style('opacity',1);
+  }
+  g.append('g').call(d3.axisLeft(y).tickSize(0).tickPadding(6)).call(ax=>ax.select('.domain').remove()).selectAll('text').attr('fill','#11131c').attr('font-size',mobile?10:12);
+  const leg=svg.append('g').attr('transform',`translate(${m.l},${h+m.t+10})`);
+  [{c:'#2f4bd0',l:'Unique'},{c:'#93a8f2',l:'Shared'}].forEach((d,i)=>{
+    leg.append('rect').attr('x',i*80).attr('width',10).attr('height',10).attr('fill',d.c).attr('rx',2);
+    leg.append('text').attr('x',i*80+14).attr('y',9).attr('fill','#5c6472').attr('font-size',11).text(d.l);
+  });
+}
+
+// ── RQ2 TREEMAP ───────────────────────────────────────────────────────────
+function drawRQ2Chart(){
+  const W=getW('c-rq2'),H=320;
+  const svg=d3.select('#c-rq2').attr('width',W).attr('height',H);
+  const root=d3.hierarchy({children:natData.map(d=>({name:d.nationality,value:d.count}))}).sum(d=>d.value);
+  d3.treemap().size([W,H]).padding(2)(root);
+  const colorScale=d3.scaleSequential().domain([0,natData[0].count]).interpolator(t=>d3.interpolate('#eaefff','#2f4bd0')(t));
+  const cell=svg.selectAll('g').data(root.leaves()).join('g').attr('transform',d=>`translate(${d.x0},${d.y0})`);
+  cell.append('rect').attr('width',d=>d.x1-d.x0).attr('height',d=>d.y1-d.y0).attr('fill',d=>colorScale(d.data.value)).attr('stroke','#ffffff').attr('stroke-width',2).attr('rx',3).style('opacity',0)
+    .on('mouseover',(e,d)=>showTip(`<b>${d.data.name}</b><br>${d.data.value.toLocaleString()} persons`,e))
+    .on('mousemove',(e,d)=>showTip(`<b>${d.data.name}</b><br>${d.data.value.toLocaleString()} persons`,e))
+    .on('mouseleave',hideTip)
+    .transition().duration(500).style('opacity',1);
+  cell.append('text').attr('x',6).attr('y',16).attr('fill',d=>d.data.value>natData[0].count*0.45?'#ffffff':'#11131c').attr('font-size',11).attr('font-weight',600)
+    .text(d=>(d.x1-d.x0)>70?d.data.name.replace(' (culture or style)','').replace(' (modern)','').replace(', style, period',''):'')
+    .each(function(d){if(this.getBBox().width>d.x1-d.x0-10)d3.select(this).text('')});
+  cell.append('text').attr('x',6).attr('y',31).attr('fill',d=>d.data.value>natData[0].count*0.45?'#eaefff':'#5c6472').attr('font-size',10)
+    .text(d=>(d.x1-d.x0)>70?d.data.value.toLocaleString():'');
+} // end drawRQ2Chart
+
+// ── RQ3 PIE + RATIO CHART ──────────────────────────────────────────────────
+function drawRQ3Charts(){
+  const W=getW('c-rq3-pie'),H=260,R=Math.min(W,H)/2-24;
+  const svg=d3.select('#c-rq3-pie').attr('width',W).attr('height',H);
+  const gp=svg.append('g').attr('transform',`translate(${W/2},${H/2})`);
+  const col=d3.scaleOrdinal().domain(['male','female','unidentified']).range(['#2f4bd0','#93a8f2','#d3d9ea']);
+  const pie=d3.pie().value(d=>d.count).sort(null);
+  const arc=d3.arc().innerRadius(R*.52).outerRadius(R);
+  gp.selectAll('path').data(pie(genTotal)).join('path')
+    .attr('fill',d=>col(d.data.gender)).attr('stroke','#ffffff').attr('stroke-width',2)
+    .on('mouseover',(e,d)=>showTip(`<b>${d.data.gender}</b> &nbsp; ${d.data.count.toLocaleString()}`,e))
+    .on('mousemove',(e,d)=>showTip(`<b>${d.data.gender}</b> &nbsp; ${d.data.count.toLocaleString()}`,e))
+    .on('mouseleave',hideTip)
+    .transition().duration(800).attrTween('d',function(d){const i=d3.interpolate({startAngle:0,endAngle:0},d);return t=>arc(i(t))});
+  const tot=d3.sum(genTotal,d=>d.count),m=genTotal.find(d=>d.gender==='male');
+  if(m){
+    gp.append('text').attr('text-anchor','middle').attr('dy','-.1em').attr('font-size',28).attr('font-weight',700).attr('fill','#2f4bd0').text(Math.round(m.count/tot*100)+'%');
+    gp.append('text').attr('text-anchor','middle').attr('dy','1.4em').attr('font-size',12).attr('fill','#5c6472').text('male');
+  }
+  const leg=svg.append('g').attr('transform',`translate(${W/2-150},${H-18})`);
+  [['#2f4bd0','male'],['#93a8f2','female'],['#d3d9ea','unidentified']].forEach((d,i)=>{
+    leg.append('circle').attr('cx',i*110+5).attr('cy',5).attr('r',5).attr('fill',d[0]);
+    leg.append('text').attr('x',i*110+14).attr('y',9).attr('fill','#5c6472').attr('font-size',11).text(d[1]);
+  });
+
+  // ── RQ3 RATIO CHART (same function) ──────────────────────────────────────
+  const ml={t:24,r:16,b:30,l:44};
+  const Wl=getW('c-rq3-line'),Hl=280;
+  const wl=Wl-ml.l-ml.r,hl=Hl-ml.t-ml.b;
+  const svgl=d3.select('#c-rq3-line').attr('width',Wl).attr('height',Hl);
+  const g=svgl.append('g').attr('transform',`translate(${ml.l},${ml.t})`);
+  const decades=[...new Set(genDecade.map(d=>d.decade))].sort((a,b)=>a-b);
+  const ratioData=decades.map(dec=>{
+    const m=genDecade.find(d=>d.decade===dec&&d.gender==='male');
+    const f=genDecade.find(d=>d.decade===dec&&d.gender==='female');
+    const total=(m?m.count:0)+(f?f.count:0);
+    return{decade:dec,ratio:total>0?(f?f.count:0)/total*100:0};
+  });
+  const x=d3.scaleLinear().domain(d3.extent(decades)).range([0,wl]);
+  const y=d3.scaleLinear().domain([0,d3.max(ratioData,d=>d.ratio)*1.4]).range([hl,0]);
+  g.selectAll('.gl').data(y.ticks(4)).join('line').attr('x1',0).attr('x2',wl).attr('y1',d=>y(d)).attr('y2',d=>y(d)).attr('stroke','#e4e8f0').attr('stroke-width',1);
+  const area=d3.area().x(d=>x(d.decade)).y0(hl).y1(d=>y(d.ratio)).curve(d3.curveCatmullRom);
+  g.append('path').datum(ratioData).attr('fill','#2f4bd0').attr('opacity',.12).attr('d',area);
+  const line=d3.line().x(d=>x(d.decade)).y(d=>y(d.ratio)).curve(d3.curveCatmullRom);
+  g.append('path').datum(ratioData).attr('fill','none').attr('stroke','#2f4bd0').attr('stroke-width',2.5).attr('d',line);
+  g.selectAll('.rd').data(ratioData.filter(d=>d.ratio>0)).join('circle').attr('cx',d=>x(d.decade)).attr('cy',d=>y(d.ratio)).attr('r',3).attr('fill','#2f4bd0')
+    .on('mouseover',(e,d)=>showTip(`<b>${d.decade}s</b><br>Female share: ${d.ratio.toFixed(1)}%`,e))
+    .on('mousemove',(e,d)=>showTip(`<b>${d.decade}s</b><br>Female share: ${d.ratio.toFixed(1)}%`,e))
+    .on('mouseleave',hideTip);
+  svgl.append('text').attr('x',ml.l).attr('y',14).attr('fill','#5c6472').attr('font-size',10).text('Female share of documented artists (%)');
+  g.append('g').attr('transform',`translate(0,${hl})`).call(d3.axisBottom(x).ticks(6).tickFormat(d=>d)).call(ax=>ax.select('.domain').attr('stroke','#e4e8f0')).selectAll('text').attr('fill','#5c6472').attr('font-size',10);
+  g.append('g').call(d3.axisLeft(y).ticks(4).tickFormat(d=>d+'%')).call(ax=>ax.select('.domain').remove()).selectAll('text').attr('fill','#5c6472').attr('font-size',10);
+
+  // crosshair
+  const crosshair=g.append('line').attr('y1',0).attr('y2',hl).attr('stroke','#2f4bd0').attr('stroke-width',1).attr('stroke-dasharray','3,3').style('opacity',0);
+  const crosshairDot=g.append('circle').attr('r',5).attr('fill','#2f4bd0').attr('stroke','#fff').attr('stroke-width',2).style('opacity',0);
+  const bisect=d3.bisector(d=>d.decade).left;
+  svgl.append('rect').attr('x',ml.l).attr('y',ml.t).attr('width',wl).attr('height',hl).attr('fill','transparent')
+    .on('mousemove',(e)=>{
+      const [mx]=d3.pointer(e,g.node());
+      const dec0=x.invert(mx);
+      const idx=bisect(ratioData,dec0,1);
+      const dPrev=ratioData[idx-1], dNext=ratioData[idx];
+      let d;
+      if(!dPrev) d=dNext;
+      else if(!dNext) d=dPrev;
+      else d=(dec0-dPrev.decade>dNext.decade-dec0)?dNext:dPrev;
+      if(!d) return;
+      crosshair.attr('x1',x(d.decade)).attr('x2',x(d.decade)).style('opacity',1);
+      crosshairDot.attr('cx',x(d.decade)).attr('cy',y(d.ratio)).style('opacity',1);
+      showTip(`<b>${d.decade}s</b><br>Female share: ${d.ratio.toFixed(1)}%`,e);
+    })
+    .on('mouseleave',()=>{crosshair.style('opacity',0);crosshairDot.style('opacity',0);hideTip();});
+} // end drawRQ3Charts
+
+// ── RQ4 GROUPED BAR ───────────────────────────────────────────────────────
+function drawRQ4(){
+  const bMap=Object.fromEntries(birthData.map(d=>[d.place,d.count]));
+  const dMap=Object.fromEntries(deathData.map(d=>[d.place,d.count]));
+  const places=[...new Set([...birthData,...deathData].map(d=>d.place))];
+  const merged=places.map(p=>({place:p,birth:bMap[p]||0,death:dMap[p]||0}))
+    .filter(d=>d.birth>0&&d.death>0);
+  let sorted;
+  if(rq4Sort==='volume'){
+    sorted=merged.sort((a,b)=>(b.birth+b.death)-(a.birth+a.death)).slice(0,12);
+  }else{
+    sorted=merged.sort((a,b)=>(b.death-b.birth)-(a.death-a.birth)).slice(0,12);
+  }
+  const mergedFinal=sorted;
+  const W=getW('c-rq4');
+  const mobile=W<480;
+  const m={t:8,r:mobile?8:60,b:24,l:mobile?110:160};
+  const barH=10,gap=4,groupGap=12;
+  const H=mergedFinal.length*(barH*2+gap+groupGap)+m.t+m.b+24;
+  const w=W-m.l-m.r,h=H-m.t-m.b-24;
+  const svg=d3.select('#c-rq4').attr('width',W).attr('height',H);
+  const g=svg.append('g').attr('transform',`translate(${m.l},${m.t})`);
+  const maxVal=d3.max(mergedFinal,d=>Math.max(d.birth,d.death));
+  const x=d3.scaleLinear().domain([0,maxVal*1.05]).range([0,w]);
+  g.selectAll('.gl').data(x.ticks(mobile?3:4)).join('line').attr('x1',d=>x(d)).attr('x2',d=>x(d)).attr('y1',0).attr('y2',h).attr('stroke','#e4e8f0').attr('stroke-width',1);
+  mergedFinal.forEach((d,i)=>{
+    const yBase=i*(barH*2+gap+groupGap);
+    const lbl=mobile&&d.place.length>12?d.place.substring(0,11)+'…':d.place;
+    const gapVal=d.death-d.birth;
+    const gapTxt=gapVal>0?`+${gapVal.toLocaleString()} (more deaths)`:gapVal<0?`${gapVal.toLocaleString()} (more births)`:'even';
+    g.append('text').attr('x',-6).attr('y',yBase+barH+2).attr('text-anchor','end').attr('fill','#11131c').attr('font-size',mobile?10:11).attr('dominant-baseline','middle').text(lbl);
+    g.append('rect').attr('x',0).attr('y',yBase).attr('height',barH).attr('width',0).attr('fill','#2f4bd0').attr('rx',2)
+      .on('mouseover',e=>showTip(`<b>${d.place}</b><br>Born: ${d.birth.toLocaleString()}<br>Mobility gap: ${gapTxt}`,e))
+      .on('mousemove',e=>showTip(`<b>${d.place}</b><br>Born: ${d.birth.toLocaleString()}<br>Mobility gap: ${gapTxt}`,e))
+      .on('mouseleave',hideTip)
+      .transition().duration(600).delay(i*25).attr('width',x(d.birth));
+    if(!mobile){
+      g.append('text').attr('x',x(d.birth)+4).attr('y',yBase+barH/2+1).attr('fill','#5c6472').attr('font-size',10).attr('dominant-baseline','middle').text(d.birth.toLocaleString()).style('opacity',0).transition().duration(600).delay(i*25+300).style('opacity',1);
+    }
+    g.append('rect').attr('x',0).attr('y',yBase+barH+gap).attr('height',barH).attr('width',0).attr('fill','#93a8f2').attr('rx',2)
+      .on('mouseover',e=>showTip(`<b>${d.place}</b><br>Died: ${d.death.toLocaleString()}<br>Mobility gap: ${gapTxt}`,e))
+      .on('mousemove',e=>showTip(`<b>${d.place}</b><br>Died: ${d.death.toLocaleString()}<br>Mobility gap: ${gapTxt}`,e))
+      .on('mouseleave',hideTip)
+      .transition().duration(600).delay(i*25).attr('width',x(d.death));
+    if(!mobile){
+      g.append('text').attr('x',x(d.death)+4).attr('y',yBase+barH+gap+barH/2+1).attr('fill','#5c6472').attr('font-size',10).attr('dominant-baseline','middle').text(d.death.toLocaleString()).style('opacity',0).transition().duration(600).delay(i*25+300).style('opacity',1);
+    }
+  });
+  const leg=svg.append('g').attr('transform',`translate(${m.l},${H-16})`);
+  [{c:'#2f4bd0',l:'Born in city'},{c:'#93a8f2',l:'Died in city'}].forEach((d,i)=>{
+    leg.append('rect').attr('x',i*110).attr('width',10).attr('height',10).attr('fill',d.c).attr('rx',2);
+    leg.append('text').attr('x',i*110+14).attr('y',9).attr('fill','#5c6472').attr('font-size',11).text(d.l);
+  });
+  d3.select('#c-rq4').attr('height',H);
+} // end drawRQ4
+
+function drawCharts(){
+  drawRQ1();
+  drawRQ2Chart();
+  drawRQ3Charts();
+  drawRQ4();
+}
+drawCharts();
+
+// ── RESIZE: redraw charts without reload ──────────────────────────────────
+let resizeTimer;
+window.addEventListener('resize',()=>{
+  clearTimeout(resizeTimer);
+  resizeTimer=setTimeout(()=>{
+    ['c-rq1','c-rq2','c-rq3-pie','c-rq3-line','c-rq4'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el) el.innerHTML='';
+    });
+    drawRQ1();
+    drawRQ2Chart();
+    drawRQ3Charts();
+    drawRQ4();
+  },250);
+});
+</script>
+</body>
+</html>
